@@ -1,0 +1,180 @@
+services:
+  nginx-proxy:
+    image: nginxproxy/nginx-proxy:alpine
+    container_name: bookify_nginx_proxy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+      - nginx_proxy_certs:/etc/nginx/certs:ro
+      - nginx_proxy_vhost:/etc/nginx/vhost.d
+      - nginx_proxy_html:/usr/share/nginx/html
+      - nginx_proxy_dhparam:/etc/nginx/dhparam
+    networks:
+      - bookify_network
+    labels:
+      - "com.github.nginx-proxy.nginx-proxy"
+
+  letsencrypt:
+    image: nginxproxy/acme-companion:latest
+    container_name: bookify_letsencrypt
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - nginx_proxy_certs:/etc/nginx/certs:rw
+      - nginx_proxy_vhost:/etc/nginx/vhost.d
+      - nginx_proxy_html:/usr/share/nginx/html
+      - acme_data:/etc/acme.sh
+    networks:
+      - bookify_network
+    depends_on:
+      - nginx-proxy
+    environment:
+      - DEFAULT_EMAIL=${LETSENCRYPT_EMAIL:-admin@example.com}
+      - NGINX_PROXY_CONTAINER=bookify_nginx_proxy
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: bookify_app
+    volumes:
+      - .:/var/www/html
+      - composer_cache:/tmp/composer
+    env_file:
+      - .env
+    environment:
+      APP_URL: ${APP_URL:-http://bookify.test}
+      DB_HOST: ${DB_HOST:-mysql}
+      DB_PORT: ${DB_PORT:-3306}
+      QUEUE_CONNECTION: ${QUEUE_CONNECTION:-database}
+      # nginx-proxy configuration
+      VIRTUAL_HOST: ${VIRTUAL_HOST:-bookify.test}
+      VIRTUAL_PORT: 80
+      # Let's Encrypt configuration (only in production)
+      LETSENCRYPT_HOST: ${LETSENCRYPT_HOST:-}
+      LETSENCRYPT_EMAIL: ${LETSENCRYPT_EMAIL:-}
+    depends_on:
+      mysql:
+        condition: service_healthy
+      nginx-proxy:
+        condition: service_started
+    command: >
+      sh -c "
+        composer install --no-interaction &&
+        php artisan migrate --force &&
+        php-fpm
+      "
+    restart: unless-stopped
+    networks:
+      - bookify_network
+    expose:
+      - "80"
+
+  nginx:
+    image: nginx:alpine
+    container_name: bookify_nginx
+    restart: unless-stopped
+    volumes:
+      - .:/var/www/html
+      - ./docker/nginx/nginx.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - app
+    networks:
+      - bookify_network
+    expose:
+      - "80"
+    environment:
+      # nginx-proxy configuration
+      VIRTUAL_HOST: ${VIRTUAL_HOST:-bookify.test}
+      VIRTUAL_PORT: 80
+      # Let's Encrypt configuration (only in production)
+      LETSENCRYPT_HOST: ${LETSENCRYPT_HOST:-}
+      LETSENCRYPT_EMAIL: ${LETSENCRYPT_EMAIL:-}
+
+  queue:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: bookify_queue
+    volumes:
+      - .:/var/www/html
+      - composer_cache:/tmp/composer
+    env_file:
+      - .env
+    environment:
+      DB_HOST: ${DB_HOST:-mysql}
+      DB_PORT: ${DB_PORT:-3306}
+      QUEUE_CONNECTION: ${QUEUE_CONNECTION:-database}
+    depends_on:
+      mysql:
+        condition: service_healthy
+    command: >
+      sh -c "
+        composer install --no-interaction &&
+        php artisan queue:work --sleep=3 --tries=3 --verbose
+      "
+    restart: unless-stopped
+    networks:
+      - bookify_network
+
+  scheduler:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: bookify_scheduler
+    volumes:
+      - .:/var/www/html
+      - composer_cache:/tmp/composer
+    env_file:
+      - .env
+    environment:
+      DB_HOST: ${DB_HOST:-mysql}
+      DB_PORT: ${DB_PORT:-3306}
+      QUEUE_CONNECTION: ${QUEUE_CONNECTION:-database}
+    depends_on:
+      mysql:
+        condition: service_healthy
+    command: >
+      sh -c "
+        composer install --no-interaction &&
+        php artisan schedule:work
+      "
+    restart: unless-stopped
+    networks:
+      - bookify_network
+
+  mysql:
+    image: mysql:9.5
+    container_name: bookify_mysql
+    restart: unless-stopped
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_USER: ${DB_USERNAME}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: "Hisham!0675AIT"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      retries: 5
+      timeout: 5s
+    networks:
+      - bookify_network
+
+networks:
+  bookify_network:
+    driver: bridge
+
+volumes:
+  mysql_data:
+  composer_cache:
+  nginx_proxy_certs:
+  nginx_proxy_vhost:
+  nginx_proxy_html:
+  nginx_proxy_dhparam:
+  acme_data:
