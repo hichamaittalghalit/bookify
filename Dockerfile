@@ -41,13 +41,15 @@ RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
 # Use existing www-data user safely
 RUN chown -R www-data:www-data /var/www/html
 
-# Configure PHP for file uploads
+# Configure PHP for larger file uploads
 RUN echo "upload_max_filesize = 20M" >> /usr/local/etc/php/conf.d/uploads.ini \
     && echo "post_max_size = 20M" >> /usr/local/etc/php/conf.d/uploads.ini
 
+# Configure Git safe directory (system-wide, avoids permission errors)
+RUN git config --system --add safe.directory /var/www/html
+
+# Switch to www-data user
 USER www-data
 
-# Git safe directory for www-data
-RUN git config --global --add safe.directory /var/www/html
-
+# Default command
 CMD ["php-fpm"]
