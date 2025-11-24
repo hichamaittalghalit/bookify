@@ -38,15 +38,15 @@ RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-RUN addgroup --system --gid 1000 laravel \
-    && adduser --system --ingroup laravel --uid 1000 laravel \
-    && chown -R laravel:laravel /var/www/html
+RUN addgroup --system --gid 1000 www-data \
+    && adduser --system --ingroup www-data --uid 1000 www-data \
+    && chown -R www-data:www-data /var/www/html
 
 # Configure PHP for file uploads
 RUN echo "upload_max_filesize = 20M" >> /usr/local/etc/php/conf.d/uploads.ini \
     && echo "post_max_size = 20M" >> /usr/local/etc/php/conf.d/uploads.ini
 
-USER laravel
+USER www-data
 
 RUN git config --global --add safe.directory /var/www/html
 
