@@ -8,8 +8,10 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use App\Models\User;
+use App\Mail\AdminPasswordResetMail;
 
 class AuthController extends Controller
 {
@@ -82,14 +84,18 @@ class AuthController extends Controller
             ]
         );
 
-        // In production, send email here with reset link
-        // For now, we'll return the token in the response (remove this in production!)
+        // Generate reset URL
         $resetUrl = route('admin.password.reset', ['token' => $token, 'email' => $request->email]);
         
-        // TODO: Send email with $resetUrl
-        // Mail::to($user->email)->send(new AdminPasswordResetMail($resetUrl));
+        // Send email with reset link
+        try {
+            Mail::to($user->email)->send(new AdminPasswordResetMail($resetUrl, $user));
+        } catch (\Exception $e) {
+            // Log the error but don't expose it to the user for security
+            \Log::error('Failed to send password reset email: ' . $e->getMessage());
+        }
         
-        return back()->with('success', __('admin.password_reset_link_generated', ['url' => $resetUrl]));
+        return back()->with('success', __('admin.password_reset_link_sent'));
     }
 
     /**

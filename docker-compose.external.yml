@@ -50,6 +50,8 @@ services:
       # nginx-proxy configuration
       VIRTUAL_HOST: ${VIRTUAL_HOST}
       VIRTUAL_PORT: 81
+      # Increase upload size limit for nginx-proxy
+      CLIENT_MAX_BODY_SIZE: 100M
       # Let's Encrypt configuration (only in production)
       LETSENCRYPT_HOST: ${LETSENCRYPT_HOST}
       LETSENCRYPT_EMAIL: ${LETSENCRYPT_EMAIL}
