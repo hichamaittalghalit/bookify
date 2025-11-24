@@ -48,5 +48,7 @@ RUN echo "upload_max_filesize = 20M" >> /usr/local/etc/php/conf.d/uploads.ini \
 
 USER laravel
 
+RUN git config --global --add safe.directory /var/www/html
+
 CMD ["php-fpm"]
 
