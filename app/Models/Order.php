@@ -11,7 +11,6 @@ class Order extends Model
 
     protected $fillable = [
         'num',
-        'uuid',
         'paypal_payment_id',
         'paypal_payer_id',
         'paypal_id',
@@ -24,12 +23,6 @@ class Order extends Model
     protected static function boot()
     {
         parent::boot();
-
-        static::creating(function ($order) {
-            if (empty($order->uuid)) {
-                $order->uuid = \Illuminate\Support\Str::uuid()->toString();
-            }
-        });
     }
 
     protected $casts = [
