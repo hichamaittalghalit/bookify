@@ -12,6 +12,7 @@
 
     <title>@yield('title', $siteName . ' - ' . $siteDescription)</title>
     <meta name="description" content="@yield('meta_description', $siteDescription)">
+    <link rel="sitemap" type="application/xml" href="{{ url('/sitemap.xml') }}">
 
     @yield('meta_tags')
 
@@ -47,8 +48,11 @@
                     </a>
                 </div>
                 <div class="flex items-center space-x-4">
-                    <a href="{{ route('books.index') }}" class="text-gray-700 hover:text-indigo-600 font-medium transition">
-                        {{ __('common.all_books') }}
+                    <a href="{{ route('contact.index') }}" class="text-gray-700 hover:text-indigo-600 font-medium transition">
+                        {{ __('common.contact') }}
+                    </a>
+                    <a href="{{ route('pages.faq') }}" class="text-gray-700 hover:text-indigo-600 font-medium transition">
+                        {{ __('pages.faq.title') }}
                     </a>
                 </div>
             </div>

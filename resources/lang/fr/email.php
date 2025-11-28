@@ -15,5 +15,20 @@ return [
     'enjoy_reading' => 'Bonne lecture!',
     'best_regards' => 'Cordialement,',
     'bookify_team' => 'L\'équipe Bookify',
+    
+    // Contact & Email Replies
+    're_re' => 'Re:',
+    'contact_reply_subject' => 'Réponse à votre message',
+    'email_reply_subject' => 'Réponse à votre email',
+    'thank_you_for_contacting' => 'Merci de nous avoir contactés. Nous avons bien reçu votre message et nous vous répondons ci-dessous.',
+    'thank_you_for_email' => 'Merci pour votre email. Nous avons bien reçu votre message et nous vous répondons ci-dessous.',
+    'your_message' => 'Votre message',
+    'your_email' => 'Votre email',
+    'our_response' => 'Notre réponse',
+    'if_you_have_questions' => 'Si vous avez d\'autres questions, n\'hésitez pas à nous contacter à nouveau.',
+    'object' => 'Objet',
+    'message' => 'Message',
+    'subject' => 'Sujet',
+    'received' => 'Reçu le',
 ];
 

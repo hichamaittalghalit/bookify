@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\BookController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\PageController;
+use App\Http\Controllers\ContactController;
 
 // Home page - show books list
 Route::get('/', [BookController::class, 'index'])->name('books.index');
@@ -18,6 +19,10 @@ Route::post('/payment/initiate', [PaymentController::class, 'initiate'])->name('
 Route::get('/payment/callback', [PaymentController::class, 'callback'])->name('payment.callback');
 Route::get('/payment/thank-you/{num}', [PaymentController::class, 'thankyou'])->name('payment.thankyou');
 
+// Contact
+Route::get('/contact', [ContactController::class, 'index'])->name('contact.index');
+Route::post('/contact', [ContactController::class, 'store'])->middleware('throttle:3,1')->name('contact.store');
+
 // Static pages
 Route::get('/faq', [PageController::class, 'faq'])->name('pages.faq');
 Route::get('/legal-notice', [PageController::class, 'legalNotice'])->name('pages.legal-notice');
@@ -26,6 +31,9 @@ Route::get('/privacy', [PageController::class, 'privacy'])->name('pages.privacy'
 
 // Language switch
 Route::get('/lang/{locale}', [App\Http\Controllers\LanguageController::class, 'switch'])->name('lang.switch');
+
+// Sitemap
+Route::get('/sitemap.xml', [App\Http\Controllers\SitemapController::class, 'index'])->name('sitemap');
 
 // Admin routes - Auth (public)
 Route::prefix('admin')->name('admin.')->group(function () {
@@ -62,5 +70,20 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('/profile', [App\Http\Controllers\Admin\ProfileController::class, 'edit'])->name('profile.edit');
         Route::put('/profile', [App\Http\Controllers\Admin\ProfileController::class, 'update'])->name('profile.update');
         Route::put('/profile/password', [App\Http\Controllers\Admin\ProfileController::class, 'updatePassword'])->name('profile.password.update');
+        
+        // SMTPs CRUD
+        Route::resource('smtps', App\Http\Controllers\Admin\SmtpController::class);
+        Route::post('/smtps/{id}/fetch-emails', [App\Http\Controllers\Admin\SmtpController::class, 'fetchEmails'])->name('smtps.fetch-emails');
+        Route::get('/smtps/{smtpId}/emails/{emailId}/reply', [App\Http\Controllers\Admin\SmtpController::class, 'replyEmail'])->name('smtps.emails.reply');
+        Route::post('/smtps/{smtpId}/emails/{emailId}/reply', [App\Http\Controllers\Admin\SmtpController::class, 'sendEmailReply'])->name('smtps.emails.send-reply');
+        Route::get('/smtps/emails/all', [App\Http\Controllers\Admin\SmtpController::class, 'allEmails'])->name('smtps.emails.all');
+        Route::get('/received-emails/{id}', [App\Http\Controllers\Admin\ReceivedEmailController::class, 'show'])->name('received-emails.show');
+        
+        // Contacts
+        Route::get('/contacts', [App\Http\Controllers\Admin\ContactController::class, 'index'])->name('contacts.index');
+        Route::get('/contacts/{id}', [App\Http\Controllers\Admin\ContactController::class, 'show'])->name('contacts.show');
+        Route::get('/contacts/{id}/reply', [App\Http\Controllers\Admin\ContactController::class, 'reply'])->name('contacts.reply');
+        Route::post('/contacts/{id}/reply', [App\Http\Controllers\Admin\ContactController::class, 'sendReply'])->name('contacts.send-reply');
+        Route::delete('/contacts/{id}', [App\Http\Controllers\Admin\ContactController::class, 'destroy'])->name('contacts.destroy');
     });
 });

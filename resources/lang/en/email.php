@@ -15,5 +15,20 @@ return [
     'order_details' => 'Order Details',
     'date' => 'Date',
     'payment_method' => 'Payment Method',
+    
+    // Contact & Email Replies
+    're_re' => 'Re:',
+    'contact_reply_subject' => 'Reply to your message',
+    'email_reply_subject' => 'Reply to your email',
+    'thank_you_for_contacting' => 'Thank you for contacting us. We have received your message and we are responding below.',
+    'thank_you_for_email' => 'Thank you for your email. We have received your message and we are responding below.',
+    'your_message' => 'Your message',
+    'your_email' => 'Your email',
+    'our_response' => 'Our response',
+    'if_you_have_questions' => 'If you have any other questions, please feel free to contact us again.',
+    'object' => 'Subject',
+    'message' => 'Message',
+    'subject' => 'Subject',
+    'received' => 'Received on',
 ];
 

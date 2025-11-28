@@ -5,6 +5,7 @@ return [
     'home' => 'Home',
     'books' => 'Books',
     'all_books' => 'All Books',
+    'contact' => 'Contact',
     'back' => 'Back',
     'back_to_books' => 'Back to Books',
     

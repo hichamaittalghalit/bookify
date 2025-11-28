@@ -24,7 +24,7 @@ class DashboardController extends Controller
             'pending_orders' => Order::where('status', 'pending')->count(),
             'canceled_orders' => Order::where('status', 'canceled')->count(),
             'total_revenue' => Order::where('status', 'completed')->sum('price'),
-            'total_users' => User::count(),
+            'total_users' => User::where('role', 'user')->count(),
             'paypal_accounts' => PayPal::count(),
         ];
 

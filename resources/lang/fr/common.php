@@ -5,6 +5,7 @@ return [
     'home' => 'Accueil',
     'books' => 'Livres',
     'all_books' => 'Tous les livres',
+    'contact' => 'Contact',
     'back' => 'Retour',
     'back_to_books' => 'Retour aux livres',
     

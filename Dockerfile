@@ -17,7 +17,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         libicu-dev \
         default-mysql-client \
         gnupg \
+        libc-client-dev \
+        libkrb5-dev \
     && docker-php-ext-configure intl \
+    && docker-php-ext-configure imap --with-kerberos --with-imap-ssl \
     && docker-php-ext-install \
         bcmath \
         exif \
@@ -26,6 +29,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         pcntl \
         pdo_mysql \
         zip \
+        imap \
     && pecl install redis \
     && docker-php-ext-enable redis \
     && rm -rf /var/lib/apt/lists/*
