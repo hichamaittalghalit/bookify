@@ -63,7 +63,11 @@ class ImapService
                         $bodyHtml = $this->getHtmlBody($connection, $emailNumber, $structure);
                     }
 
-                    // Extract from/to
+                    // Extract from/to - validate from array exists and has elements
+                    if (!isset($header->from) || !is_array($header->from) || empty($header->from)) {
+                        throw new \Exception('Email missing From header');
+                    }
+                    
                     $fromEmail = $header->from[0]->mailbox . '@' . $header->from[0]->host;
                     $fromName = isset($header->from[0]->personal) ? imap_mime_header_decode($header->from[0]->personal)[0]->text : null;
                     
@@ -117,7 +121,8 @@ class ImapService
         }
 
         foreach ($structure->parts as $partNum => $part) {
-            if ($part->subtype === 'HTML') {
+            // Case-insensitive comparison for HTML subtype
+            if (isset($part->subtype) && strcasecmp($part->subtype, 'HTML') === 0) {
                 $body = imap_fetchbody($connection, $emailNumber, $partNum + 1);
                 return imap_base64($body) ?: quoted_printable_decode($body);
             }

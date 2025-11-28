@@ -81,20 +81,73 @@
 </div>
 
 <script>
+// Sanitize HTML to prevent XSS attacks
+function sanitizeHtml(html) {
+    if (!html) return '';
+    const div = document.createElement('div');
+    div.textContent = html;
+    return div.innerHTML;
+}
+
+// Sanitize HTML content while preserving safe HTML tags
+function sanitizeHtmlContent(html) {
+    if (!html) return '';
+    // Remove script, iframe, object, embed tags and their content
+    const temp = document.createElement('div');
+    temp.innerHTML = html;
+    
+    // Remove dangerous elements
+    const dangerous = temp.querySelectorAll('script, iframe, object, embed, form, input, button');
+    dangerous.forEach(el => el.remove());
+    
+    // Remove event handlers from remaining elements
+    const all = temp.querySelectorAll('*');
+    all.forEach(el => {
+        Array.from(el.attributes).forEach(attr => {
+            if (attr.name.startsWith('on')) {
+                el.removeAttribute(attr.name);
+            }
+        });
+    });
+    
+    return temp.innerHTML;
+}
+
 function showEmail(id) {
     fetch(`{{ url('/admin/received-emails') }}/${id}`)
         .then(response => response.json())
         .then(data => {
-            document.getElementById('emailSubject').textContent = data.subject;
+            document.getElementById('emailSubject').textContent = data.subject || '';
+            
+            // Sanitize email addresses and names
+            const fromEmail = sanitizeHtml(data.from_email || '');
+            const fromName = data.from_name ? '(' + sanitizeHtml(data.from_name) + ')' : '';
+            const toEmail = sanitizeHtml(data.to_email || '');
+            const toName = data.to_name ? '(' + sanitizeHtml(data.to_name) + ')' : '';
+            const receivedAt = sanitizeHtml(data.received_at || '');
+            
+            // Sanitize email body - use HTML if available, otherwise plain text
+            let bodyContent = '';
+            if (data.body_html) {
+                bodyContent = sanitizeHtmlContent(data.body_html);
+            } else if (data.body) {
+                // For plain text, escape and convert newlines to <br>
+                bodyContent = sanitizeHtml(data.body).replace(/\n/g, '<br>');
+            }
+            
             document.getElementById('emailContent').innerHTML = `
-                <div><strong>{{ __('admin.from') }}:</strong> ${data.from_email} ${data.from_name ? '(' + data.from_name + ')' : ''}</div>
-                <div><strong>{{ __('admin.to') }}:</strong> ${data.to_email} ${data.to_name ? '(' + data.to_name + ')' : ''}</div>
-                <div><strong>{{ __('admin.received_at') }}:</strong> ${data.received_at}</div>
+                <div><strong>{{ __('admin.from') }}:</strong> ${fromEmail} ${fromName}</div>
+                <div><strong>{{ __('admin.to') }}:</strong> ${toEmail} ${toName}</div>
+                <div><strong>{{ __('admin.received_at') }}:</strong> ${receivedAt}</div>
                 <div class="border-t pt-4">
-                    <div class="prose max-w-none">${data.body_html || data.body.replace(/\n/g, '<br>')}</div>
+                    <div class="prose max-w-none">${bodyContent}</div>
                 </div>
             `;
             document.getElementById('emailModal').classList.remove('hidden');
+        })
+        .catch(error => {
+            console.error('Error fetching email:', error);
+            alert('Error loading email details');
         });
 }
 

@@ -71,12 +71,12 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::put('/profile', [App\Http\Controllers\Admin\ProfileController::class, 'update'])->name('profile.update');
         Route::put('/profile/password', [App\Http\Controllers\Admin\ProfileController::class, 'updatePassword'])->name('profile.password.update');
         
-        // SMTPs CRUD
-        Route::resource('smtps', App\Http\Controllers\Admin\SmtpController::class);
+        // SMTPs CRUD - Define specific routes before resource route to avoid conflicts
+        Route::get('/smtps/emails/all', [App\Http\Controllers\Admin\SmtpController::class, 'allEmails'])->name('smtps.emails.all');
         Route::post('/smtps/{id}/fetch-emails', [App\Http\Controllers\Admin\SmtpController::class, 'fetchEmails'])->name('smtps.fetch-emails');
         Route::get('/smtps/{smtpId}/emails/{emailId}/reply', [App\Http\Controllers\Admin\SmtpController::class, 'replyEmail'])->name('smtps.emails.reply');
         Route::post('/smtps/{smtpId}/emails/{emailId}/reply', [App\Http\Controllers\Admin\SmtpController::class, 'sendEmailReply'])->name('smtps.emails.send-reply');
-        Route::get('/smtps/emails/all', [App\Http\Controllers\Admin\SmtpController::class, 'allEmails'])->name('smtps.emails.all');
+        Route::resource('smtps', App\Http\Controllers\Admin\SmtpController::class);
         Route::get('/received-emails/{id}', [App\Http\Controllers\Admin\ReceivedEmailController::class, 'show'])->name('received-emails.show');
         
         // Contacts
